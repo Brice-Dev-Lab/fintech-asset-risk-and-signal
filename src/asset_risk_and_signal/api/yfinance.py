@@ -22,8 +22,16 @@ def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame
         >>> multi_yfinance(['MSFT', 'GOOG', 'AAPL'], '2020-01-01', '2026-01-01')
     """
     # TODO: Create error validation
-    #   - what to do if an invalid ticker is passed
-    #   - bad format with date entry
-    #   - empty dataframe (API worked but returned nothing
+    #   Layer 1 (input validation):
+    #       - is tickers a list
+    #       - are all elements strings
+    #       - is the list empty
+    #       - bad format with date entry
+    #   Layer 2 (try/except - external risk):
+    #       - what to do if an invalid ticker is passed
+    #       - API outages
+    #       - empty dataframe (API worked but returned nothing
+    #       - unexpected library behavior
+    
     data: DataFrame = yf.download(tickers, start=start_date, end=end_date)
     return data
