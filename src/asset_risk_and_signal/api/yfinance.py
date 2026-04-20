@@ -1,10 +1,7 @@
 """A module for interacting with Yahoo Finance API for asset risk and signal analysis."""
-from jedi.inference.helpers import is_string
-from lib2to3.fixer_util import is_list
-from typing import List
-
+import pandas as pd
 import yfinance as yf
-from IPython.utils.wildcard import is_type
+import datetime
 from pandas import DataFrame
 
 
@@ -35,16 +32,33 @@ def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame
     #       - API outages
     #       - empty dataframe (API worked but returned nothing
     #       - unexpected library behavior
+
+    # NOTE: Layer 1 validation checks
     if not isinstance(tickers,list):
         raise TypeError("tickers must be passed as a list")
     if not isinstance(start_date, str) or not isinstance(end_date, str):
         raise TypeError("Start and end dates must be a string")
-    if len(tickers) == 0:
+    if not tickers:
         raise ValueError("List of tickers must not be empty")
     for item in tickers:
         if not isinstance(item, str):
-            raise TypeError("All tickers must be a string")
+            raise TypeError("All tickers must be strings")
+    # parse date strings
+    date_format:str = '%Y-%m-%d' # %Y -> 4-digit year, %y -> 2-digit year
+
+    try:
+        s_date = datetime.datetime.strptime(start_date, date_format)
+        e_date = datetime.datetime.strptime(end_date, date_format)
+    except ValueError:
+        raise ValueError("Invalid date or incorrect format. Format to be YYYY-MM-DD")
+
+    # validation that start and end dates are not flipped
+    if s_date > e_date:
+        raise ValueError("Start date must be before end date")
+
+    # NOTE: Layer 2 validation checks
 
 
-    data: DataFrame = yf.download(tickers, start=start_date, end=end_date)
+    # NOTE: API Logic
+    data: DataFrame = yf.download(tickers, start=s_date, end=e_date)
     return data
