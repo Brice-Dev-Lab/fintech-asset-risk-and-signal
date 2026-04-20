@@ -5,7 +5,7 @@ import datetime
 from pandas import DataFrame
 
 
-def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame:
+def load_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame:
     """
     API call for multiple tickers
 
@@ -19,7 +19,7 @@ def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame
         data: returns a pandas DataFrame
 
     Example:
-        >>> multi_yfinance(['MSFT', 'GOOG', 'AAPL'], '2020-01-01', '2026-01-01')
+        >>> load_yfinance(['MSFT', 'GOOG', 'AAPL'], '2020-01-01', '2026-01-01')
     """
     # TODO: Create error validation
     #   Layer 1 (input validation):
@@ -30,7 +30,7 @@ def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame
     #   Layer 2 (try/except - external risk):
     #       - what to do if an invalid ticker is passed
     #       - API outages
-    #       - empty dataframe (API worked but returned nothing
+    #       - empty dataframe (API worked but returned nothing)
     #       - unexpected library behavior
 
     # NOTE: Layer 1 validation checks
@@ -56,9 +56,14 @@ def multi_yfinance(tickers:list[str], start_date:str, end_date:str) -> DataFrame
     if s_date > e_date:
         raise ValueError("Start date must be before end date")
 
-    # NOTE: Layer 2 validation checks
+    # NOTE: Layer 2 validation checks & API logic
+    try:
+        data: DataFrame = yf.download(tickers, start=s_date, end=e_date)
+    except Exception as e:
+        raise RuntimeError("Failed to fetch market data") from e
 
+    # validate dataframe content
+    if data.empty:
+        raise ValueError("API returned no data")
 
-    # NOTE: API Logic
-    data: DataFrame = yf.download(tickers, start=s_date, end=e_date)
     return data
